@@ -31,10 +31,6 @@ this is how the rbc protocol works
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ProtMsg {
     // Create your custom types of messages'
-    Sendall(Msg, Replica), // Init
     Echo(Msg, Replica),
     Ready(Msg, Replica),
-    Output(Msg, Replica),
-    // Example type is a ping message, which takes a Message and the sender replica
-    Ping(Msg, Replica),
 }

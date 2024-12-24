@@ -190,12 +190,21 @@ impl Syncer {
                             msg: self.broadcast_msgs.get(&self.rbc_id-1).unwrap().to_string(),
                         };
                         let binaryfy_val = bincode::serialize(&sync_rbc_msg).expect("Failed to serialize client message");
-                        let cancel_handler:CancelHandler<Acknowledgement> = self.net_send.send(0, SyncMsg {
-                            sender: self.num_nodes,
-                            state: SyncState::START,
-                            value:binaryfy_val
-                        }).await;
-                        self.add_cancel_handler(cancel_handler);
+
+
+                        for node_id in 0..self.num_nodes {
+                            let cancel_handler: CancelHandler<Acknowledgement> = self
+                                .net_send
+                                .send(node_id, SyncMsg {
+                                    sender: self.num_nodes, 
+                                    state: SyncState::START,
+                                    value: binaryfy_val.clone(), // Clone since it's reused for multiple nodes
+                                })
+                                .await;
+
+                            self.add_cancel_handler(cancel_handler);
+                        }
+
 
                         let start_time = SystemTime::now()
                         .duration_since(UNIX_EPOCH)

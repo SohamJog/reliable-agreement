@@ -26,19 +26,6 @@ impl Context {
         self.handle_ready(msg).await;
     }
 
-    pub async fn start_init(self: &mut Context, input_msg: Vec<u8>) {
-        // Draft a message
-        let msg = Msg {
-            content: input_msg.clone(),
-            origin: self.myid,
-        };
-        // Wrap the message in a type
-        // Use different types of messages like INIT, ECHO, .... for the Bracha's RBC implementation
-        let protocol_msg = ProtMsg::Sendall(msg, self.myid);
-        // Broadcast the message to everyone
-        self.broadcast(protocol_msg).await;
-    }
-
     pub async fn start_echo(self: &mut Context, msg_content: Vec<u8>) {
         // Draft a message
         let msg = Msg {
@@ -46,7 +33,6 @@ impl Context {
             origin: self.myid,
         };
         // Wrap the message in a type
-        // Use different types of messages like INIT, ECHO, .... for the Bracha's RBC implementation
         let protocol_msg = ProtMsg::Echo(msg, self.myid);
         // Broadcast the message to everyone
         self.broadcast(protocol_msg).await;
@@ -60,31 +46,13 @@ impl Context {
             origin: self.myid,
         };
         // Wrap the message in a type
-        // Use different types of messages like INIT, ECHO, .... for the Bracha's RBC implementation
         let protocol_msg = ProtMsg::Ready(msg, self.myid);
         // Broadcast the message to everyone
         self.broadcast(protocol_msg).await;
         self.ready_self(msg_content.clone()).await;
     }
 
-    pub async fn handle_ping(self: &mut Context, msg: Msg) {
-        log::info!(
-            "Received ping message {:?} from node {}",
-            msg.content,
-            msg.origin
-        );
-    }
-
-    pub async fn handle_sendall(self: &mut Context, msg: Msg) {
-        //send echo
-        self.start_echo(msg.content.clone()).await;
-
-        log::info!(
-            "Received Sendall message {:?} from node {}.",
-            msg.content,
-            msg.origin,
-        );
-    }
+ 
 
     pub async fn handle_echo(self: &mut Context, msg: Msg) {
         let senders = self.echo_senders.entry(msg.content.clone()).or_default();
@@ -113,14 +81,14 @@ impl Context {
                 }
             }
 
-            // Check if we've received 2t + 1 echoes for this message
-            if max_count == 2 * self.num_faults + 1 && !self.first_ready {
+            // Upon receiving ⟨ECHO,𝑚⟩ from 𝑛 − 𝑡 parties
+            if max_count == self.num_nodes - self.num_faults && !self.first_ready {
                 if let Some(hash) = mode_content {
-                    log::info!(
-                        "On 2t + 1 echos, sending READY with content {:?}. t = {}",
-                        hash,
-                        self.num_faults
-                    );
+                    // log::info!(
+                    //     "On 2t + 1 echos, sending READY with content {:?}. t = {}",
+                    //     hash,
+                    //     self.num_faults
+                    // );
                     self.start_ready(msg.content.clone()).await;
                     self.first_ready = true;
                 }
@@ -157,16 +125,16 @@ impl Context {
                 }
             }
 
-            // on t + 1 readys
+            // upon receiving ⟨READY,𝑚⟩ from 𝑡 + 1 parties
             if max_count == self.num_faults + 1 && !self.second_ready {
                 if let Some(hash) = mode_content {
-                    log::info!("On t + 1 readys, sending READY with content {:?}", hash,);
+                    // log::info!("On t + 1 readys, sending READY with content {:?}", hash,);
                     self.start_ready(msg.content.clone()).await;
                     self.second_ready = true;
                 }
             }
-            // on 2t + 1 readys
-            if max_count == 2 * self.num_faults + 1 && !self.terminated {
+            // upon receiving ⟨READY,𝑚⟩ from 𝑛 − 𝑡 parties
+            if max_count == self.num_nodes - self.num_faults && !self.terminated {
                 log::info!("Outputting {:?}", msg.content.clone());
                 self.terminate(msg.content.clone()).await;
                 self.terminated = true;

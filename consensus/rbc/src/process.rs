@@ -32,30 +32,15 @@ impl Context {
         // Verify the message's authenticity before proceeding
         if self.check_proposal(msg) {
             match wrapper_msg.clone().protmsg {
-                ProtMsg::Ping(main_msg, rep) => {
-                    // RBC initialized
-                    log::info!("Received Ping from node : {:?}", rep);
-                    self.handle_ping(main_msg).await;
-                }
                 ProtMsg::Echo(main_msg, rep) => {
                     // RBC initialized
-                    log::info!("Received Ping from node : {:?}", rep);
+                    log::info!("Received Echo from node : {:?}", rep);
                     self.handle_echo(main_msg).await;
-                }
-                ProtMsg::Output(main_msg, rep) => {
-                    // RBC initialized
-                    log::info!("Received Ping from node : {:?}", rep);
-                    self.handle_ping(main_msg).await;
                 }
                 ProtMsg::Ready(main_msg, rep) => {
                     // RBC initialized
-                    log::info!("Received Ping from node : {:?}", rep);
+                    log::info!("Received Ready from node : {:?}", rep);
                     self.handle_ready(main_msg).await;
-                }
-                ProtMsg::Sendall(main_msg, rep) => {
-                    // RBC initialized
-                    log::info!("Received Ping from node : {:?}", rep);
-                    self.handle_sendall(main_msg).await;
                 }
             }
         } else {

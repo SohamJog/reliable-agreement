@@ -82,9 +82,10 @@ impl Context {
             SyncHandler::new(tx_net_to_client),
         );
 
-        let consensus_net = TcpReliableSender::<Replica, WrapperMsg<ProtMsg>, Acknowledgement>::with_peers(
-            consensus_addrs.clone(),
-        );
+        let consensus_net =
+            TcpReliableSender::<Replica, WrapperMsg<ProtMsg>, Acknowledgement>::with_peers(
+                consensus_addrs.clone(),
+            );
         let sync_net =
             TcpReliableSender::<Replica, SyncMsg, Acknowledgement>::with_peers(syncer_map);
         let (exit_tx, exit_rx) = oneshot::channel();
@@ -195,10 +196,7 @@ impl Context {
                                 .as_millis());
                             // Start your protocol from here
                             // Write a function to broadcast a message. We demonstrate an example with a PING function
-                            // Now the start_ping function has the sendall tag
-                            if self.myid == 0 {
-                                self.start_init(sync_msg.value).await;
-                            }
+                            self.start_echo(sync_msg.value.clone()).await;
                             // wait for messages
                         },
                         SyncState::STOP =>{
