@@ -66,9 +66,9 @@ async fn main() -> Result<()> {
     // Start the Reliable Broadcast protocol
     let exit_tx;
     match vss_type {
-        "rbc" => {
+        "ra" => {
             exit_tx =
-                rbc::Context::spawn(config, input_value.as_bytes().to_vec(), node_normal).unwrap();
+                ra::Context::spawn(config, input_value.as_bytes().to_vec(), node_normal).unwrap();
         }
         "sync" => {
             let f_str = syncer_file.to_string();
